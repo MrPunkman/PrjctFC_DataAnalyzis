@@ -95,7 +95,7 @@ class Investigation:
         self.sensorsOfInterestArray = np.zeros((len(sensorList),7))
         self.sensoMatrix = self.readSensorMatrix()
         self.savepath = FaultExperiment.bFieldPath
-        self.diffBField = np.subtract(RefExperiment.scaledField, FaultExperiment.scaledField)
+        self.diffBField = np.subtract(FaultExperiment.scaledField, RefExperiment.scaledField)
         self.sensorsOfInterestArray = self.creatSensorMapping()
         self.plotHealthyAndFaultyField()
         self.plotDiffField()
