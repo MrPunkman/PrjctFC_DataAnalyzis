@@ -56,8 +56,10 @@ def returnAllColumnsOfDFasArray(bFieldPath, filename):              # return mea
     df = np.asarray(createDF(bFieldPath, filename))
     return df
 
-# plot B-Field respecting factors depending on the investigated year and save clean field mean values as txt
+
 def plotFieldMeasurementDataAndSavePlots(rawField, noiseField, cleanField, year, bFieldPath, filename):
+# plot B-Field respecting factors depending on the investigated year and save clean field mean values as txt
+    # depending on the year, different factors need to be applied
     if year == 2020:
         arrayPlotFactor = 1E6
         arrayScaleFactor = 1E6
@@ -71,10 +73,6 @@ def plotFieldMeasurementDataAndSavePlots(rawField, noiseField, cleanField, year,
         ylimBFieldUp = 100
         ylimBFieldDown = -100
 
-    # rawFieldArray = np.zeros((len(rawField)))
-    # for element in range(0, len(rawFieldArray)-1):
-    #     rawFieldArray[element] = np.multiply(np.mean(rawField[element], axis=0),arrayPlotFactor)
-
     f1 = plt.subplots(1, 1, figsize=set_size(), sharey=True)
     plt.plot(np.multiply(noiseField, arrayPlotFactor), ":" , label = "Noise mean value in $\mu$T", color = specific_colors['G2E_black'])
     plt.plot(np.multiply(rawField, arrayPlotFactor), ':' , label = "B-Field with noise in $\mu$T", color = specific_colors['RawField'])
@@ -84,24 +82,25 @@ def plotFieldMeasurementDataAndSavePlots(rawField, noiseField, cleanField, year,
     plt.ylim(ylimBFieldDown, ylimBFieldUp)
     plt.xlim(0,len(cleanField)-1)
     plt.legend()
-    # plt.show()
+
 
     plt.savefig(bFieldPath + filename[0: -11]+"_B_Field_CleanMeasured.pdf")
     measuredField = np.multiply(cleanField, arrayDataFactor)
-    # write values to csv
+    # # write values to csv
     print("Exported DataFrame to: " + bFieldPath + filename[0: -11]+"_B_Field_CleanMeasured.dat")
     np.savetxt(bFieldPath + filename[0: -11] + "_B_Field_CleanMeasured.dat", 
             measuredField,
             delimiter =", ", 
             fmt ='% s')
 
+
 def plotDiffField(diffBField, date, name, affectedCurrent, savepath):
-    # vizualize both, the faulty B-Field
+    # This function is used to visualize both, the faulty B-Field
     print("Visualization of diff Field")
     f3 = plt.subplots(1, 1, figsize=set_size(), sharey=True)
     plt.plot(np.multiply(diffBField,1), label = "Dif B-Field in $\mu$T mapped on Sensors", color = specific_colors['MPM_red'])
     plt.xlim(0,len(diffBField)-1)
-    # plt.ylim(-10,10)
+    # plt.ylim(-10,10) # is not used, since the 
     plt.title('Differntial B-Field caused by {faulty} for {amps} A the {date}'.format(date = date, faulty = name, amps = affectedCurrent))
     plt.legend()
     plt.xlabel("Sensor number")
@@ -109,14 +108,15 @@ def plotDiffField(diffBField, date, name, affectedCurrent, savepath):
     plt.savefig(savepath + name + "_B_diffField_investigated.pdf")
 
 def createViolinPlot(sensorDataFrame, name, savePath):
+    # this is implemented in jupyter notebook and needs to be passed here
     pass
 
-# this function is scaling the B-Field values to a certain current respecting linear conditions of the B-Field
+
 def normalizeBFieldsToCurrents(dataframeWithCurrentInfo, BbFieldWithoutNoiseMean, desiredCorruntNormalization, scalevCurrentToAmps):    # normalize B-Fields to current
+    # this function is scaling the B-Field values to a certain current respecting linear conditions of the B-Field
     ## get mean value of current
     vVlauesOfCurrent = dataframeWithCurrentInfo[:,1]
     currentMeanValue = np.multiply(np.mean(vVlauesOfCurrent),scalevCurrentToAmps)
-
     ## calc factor for normalization
     normalizationFactor = desiredCorruntNormalization/currentMeanValue
     ## scale with the factor
@@ -124,164 +124,6 @@ def normalizeBFieldsToCurrents(dataframeWithCurrentInfo, BbFieldWithoutNoiseMean
     return scaledBFieldWithoutNoiseMean
 
 
-# get B-Field Vector 
-# def createBFieldVector(noisetPath, noisefile, measurementPath, measurementFile, year, scaleBFieldToFollowingCurrent, investigatedCurrent):
-#     # chose scale factors depending on the investigated year
-#     if year == 2020 and investigatedCurrent == 50:
-#         scaleVCurrentToAmps = 64.86
-
-#     elif year == 2020 and investigatedCurrent == 100:
-#         scaleVCurrentToAmps = 60
-
-#     elif year == 2021 and investigatedCurrent == 100:
-#         scaleVCurrentToAmps = 100
-
-#     else: 
-#         print("Your current is not in the list")
-#         stop
-
-#     print('Importing files')
-#     readDataNoise = createDF(noisetPath, noisefile)
-#     readData = returnAllColumnsOfDFasArray(measurementPath, measurementFile)
-#     print('Files were imported')
-#     print('Handling noise on data')
-#     noiseMeanOnEachSensor = getMeanValueBFieldOfDFInVolt(readDataNoise)
-
-#     # create boxplot for each sensor 
-#    # sns.boxplot(data=readDataNoise, x = readDataNoise[2:62], y = readDataNoise[0:-1])
-
-#     vValuesofBbFieldWithNoise = readData[:, 2:62]
-
-#     vValuesofBbFieldWithoutNoise = np.subtract(vValuesofBbFieldWithNoise, noiseMeanOnEachSensor)
-#     print('Noise from data deleted') 
-
-#     print('Calculating mean values for each B-Field sensor')
-#     vValuesofBbFieldWithoutNoiseMean = np.mean(vValuesofBbFieldWithoutNoise, axis=0)
-#     vValuesofBbFieldWithNoiseMean = np.mean(vValuesofBbFieldWithNoise, axis=0)
-#     # plot and save data
-#     plotFieldMeasurementDataAndSavePlots(vValuesofBbFieldWithNoiseMean, noiseMeanOnEachSensor, vValuesofBbFieldWithoutNoiseMean, year, measurementPath, measurementFile)
-#     print('Data plotted and plots saved')
-
-#     bFieldWithoutNoiseMean = vValuesofBbFieldWithoutNoiseMean
-#     scaledBFieldWithoutNoiseMean = normalizeBFieldsToCurrents(readData, bFieldWithoutNoiseMean, scaleBFieldToFollowingCurrent, scaleVCurrentToAmps)
-#     return scaledBFieldWithoutNoiseMean
-
-
-# def creatDiffBfieldForMIPSE(sensorcount, noisetPath, noisefile, refMeasurementPath, refMeasurementFile, measurementPath, measurementFile, year, scaleBFieldToFollowingCurrent, investigatedCurrent = 50 or 100, plotIt = False):
-#     '''This module is created by Leonard Freisem and is used to create diff B-Field for an investigated case. \n
-#     Inputs:\n
-#         Noise file of the day ("Path/NoiseFile.lvm") \n
-#         Reference Fuel Cell file ("Path/RefMeasurementFile.lvm")\n
-#         Investigated Fuel Cell file ("Path/MeasurementFile.lvm")\n
-#         Data year (2020 or 2021) --> different factors have to be applied on the measurements\n
-#         current scale factor --> by assuming a linear system, we factorize the B-Field\n
-
-#     The function will save the files in the investigated FC-folder
-#     '''
-#     ## ref fc path and file
-#     healthyFCBFieldPath = refMeasurementPath
-#     filenameRefFC = refMeasurementFile
-
-#     # get noise path and file
-#     noiseBFieldPath = noisetPath
-#     filenamenoise = noisefile
-
-#     # get investigated FC
-#     bFieldPath = measurementPath
-#     filenameC = measurementFile
-
-#     print("Processing data from investigated FC")
-#     faultyFC = createBFieldVector(noiseBFieldPath, filenamenoise, bFieldPath, filenameC, year, scaleBFieldToFollowingCurrent, investigatedCurrent)
-
-#     print("Processing data from ref FC")
-#     refFC = createBFieldVector(noiseBFieldPath, filenamenoise, healthyFCBFieldPath, filenameRefFC, year, scaleBFieldToFollowingCurrent, investigatedCurrent)
-    
-
-#     print('Import of Data from ref FC finished')
-#     print("Calculate differential field")
-
-#     # subtract the faulty - healthy field, so faulty, field to get the differential field
-#     faultyDiffFCBField = np.subtract(faultyFC, refFC)
-#     print("Calculation finished")
-
-#     if year == 2020:
-#         arrayPlotFactor = 1E6
-#         arrayScaleFactor = 1E6
-#         arrayDataFactor = 1E6
-#     elif year == 2021:
-#         arrayPlotFactor = 1E2
-#         arrayScaleFactor = 1E-4
-#         arrayDataFactor = 1E-2
-
-#     # vizualize both, the healthy and the faulty B-Field
-#     f2 = plt.figure()
-#     plt.plot(np.multiply(refFC, arrayPlotFactor), label = "Healthy Fuel Cell B-Field in $\mu$T", color = 'b')
-#     plt.plot(np.multiply(faultyFC, arrayPlotFactor), label = "Faulty Fuel Cell B-Field in $\mu$T", color = 'r')
-#     plt.plot(np.multiply(faultyDiffFCBField,arrayPlotFactor), label = "Dif B-Field in $\mu$T", color = 'g')
-#     plt.xlim(0,len(faultyDiffFCBField)-1)
-#     plt.legend()
-#     plt.xlabel("Sensor number")
-#     plt.ylabel("B-Field Strength ($\mu$T)")
-#     plt.savefig(bFieldPath + filenameC[0: -11] + "_B_diffFields.pdf")
-
-
-#     # vizualize both, the faulty B-Field
-#     f3 = plt.figure()
-#     plt.plot(np.multiply(faultyDiffFCBField,arrayPlotFactor), label = "Dif B-Field in $\mu$T", color = 'g')
-#     plt.xlim(0,len(faultyDiffFCBField)-1)
-#     plt.ylim(-10,10)
-#     plt.legend()
-#     plt.xlabel("Sensor number")
-#     plt.ylabel("B-Field Strength ($\mu$T)")
-#     plt.savefig(bFieldPath + filenameC[0: -11] + "_B_diffField.pdf")
-
-
-#     print("Exporting differential field")
-
-#     # save differential field in txt
-#     fieldExport = np.multiply(faultyDiffFCBField,arrayScaleFactor)
-#     np.savetxt(bFieldPath + filenameC[0: -11] + "_B_diffField.dat", 
-#             fieldExport[0:sensorcount],
-#             delimiter =", ", 
-#             fmt ='% s')
-
-#     print("Exported DataFrame to: " + bFieldPath + filenameC[0: -11] + "_B_diffField.dat")
-
-
-
-    # inputs:
-    # listOfSensors, bFieldPath, bFieldFile, sensorfile, sensorfilePath
-# def appendSensorValuesonSensorMapping(sensorsOfInterest, date, name, affectedCurrent, savepath, bFieldPath):
-#     # take list of Sensors
-#     print(sensorsOfInterest)
-#     # read bField file 
-#     bFieldFilename = "SigmaFields.txt"
-#     bField = pd.read_csv(bFieldPath + bFieldFilename, sep="	", header = None)
-#     print(bField)
-#     bField = np.asarray(bField)
-#     # read Sensor file
-#     sensorPath = r'C:\Users\freiseml\Nextcloud\01_France\04_Stage\00-Travail\03-PAC\00-Dataplots\\'
-#     sensorFilename = "PYTHON_GENEPAC_Sensors_3_Plan_AV_C_AR.txt"
-#     sensorMatrix = pd.read_csv(sensorPath + sensorFilename, sep="	", header = None)
-#     print(sensorMatrix)
-#     sensorMatrix = np.asarray(sensorMatrix)
-#     sensorsOfInterestArray = np.zeros((len(sensorsOfInterest),7))
-#     bFieldOfInterestArray = np.zeros(len(sensorsOfInterest))
-#     # sensorMatrix = np.append(sensorMatrix, np.zeros(len(sensorMatrix)),1)
-#     #print(sensorMatrix)
-#     # fill sensormatrix with x y z u v w B-Field
-
-#     for i in range(0,len(sensorsOfInterest)):
-#         line = sensorsOfInterest[i]
-#         sensorsOfInterestArray [i, 0:6] = sensorMatrix[line, :]
-#         sensorsOfInterestArray [i, -1] = bField[line]
-#         bFieldOfInterestArray[i] = bField[i]
-
-
-#     plotDiffField(bFieldOfInterestArray, date, name, affectedCurrent, savepath)
-#     print(sensorsOfInterestArray)
-#     # Save as .txt
-#     np.savetxt(bFieldPath+'SensorPositionsWithFields.txt', sensorsOfInterestArray, delimiter='\t')    
 
 
 ## Test:

@@ -29,11 +29,11 @@ class Investigation:
         for i in range(0,lengthOfSensorArray):
             line = self.sensorArray[i]
             self.sensorsOfInterestArray [i, 0:6] = self.sensoMatrix[line, :]
-            self.sensorsOfInterestArray [i, -1] = sensorData[line]
+            self.sensorsOfInterestArray [i, -1] = sensorData[line]*self.FaultExperiment.arrayScaleFactor
 
         print(self.sensorsOfInterestArray)
         # Save as .txt
-        np.savetxt(self.savepath+'SensorPositionsWithFields.txt', np.multiply(self.sensorsOfInterestArray,self.FaultExperiment.arrayScaleFactor), delimiter='\t')  
+        np.savetxt(self.savepath+'SensorPositionsWithFields.txt', np.multiply(self.sensorsOfInterestArray,1), delimiter='\t')  
         return self.sensorsOfInterestArray
 
     def plotHealthyAndFaultyField(self):
@@ -63,7 +63,7 @@ class Investigation:
         f3 = plt.subplots(1, 1, figsize=set_size(), sharey=True)
         plt.plot(np.multiply(self.diffBField,self.FaultExperiment.arrayPlotFactor), label = "Dif B-Field in $\mu$T", color = specific_colors['MPM_red'])
         plt.xlim(0,len(self.diffBField)-1)
-        # plt.ylim(-10,10)
+        plt.ylim(-45,45)
         #plt.title('Differential B-Field caused by {faulty} for {amps} A the {date}'.format(date = self.FaultExperiment.date, faulty = self.FaultExperiment.name, amps = self.FaultExperiment.scaleCurrentTo))
         plt.legend()
         plt.xlabel("Sensor number")
@@ -75,7 +75,7 @@ class Investigation:
         print("Visualization of Investigated diff Field")
         f4 = plt.subplots(1, 1, figsize=set_size(), sharey=True)
         # plt.tight_layout()
-        plt.plot(np.multiply(self.sensorsOfInterestArray[:,-1],self.FaultExperiment.arrayPlotFactor), label = " Investigated dif B-Field in $\mu$T", color = specific_colors['MPM_red'])
+        plt.plot(np.multiply(self.sensorsOfInterestArray[:,-1],self.FaultExperiment.arrayDiffFieldFactor), label = " Investigated dif B-Field in $\mu$T", color = specific_colors['MPM_red'])
         plt.xlim(0,len(self.sensorsOfInterestArray)-1)
         plt.ylim(-20,20)
         #plt.title('Differential B-Field caused by {faulty} for {amps} A the {date}'.format(date = self.FaultExperiment.date, faulty = self.FaultExperiment.name, amps = self.FaultExperiment.scaleCurrentTo))
@@ -95,7 +95,7 @@ class Investigation:
         self.sensorsOfInterestArray = np.zeros((len(sensorList),7))
         self.sensoMatrix = self.readSensorMatrix()
         self.savepath = FaultExperiment.bFieldPath
-        self.diffBField = np.subtract(FaultExperiment.scaledField, RefExperiment.scaledField)
+        self.diffBField = np.subtract(RefExperiment.scaledField, FaultExperiment.scaledField)
         self.sensorsOfInterestArray = self.creatSensorMapping()
         self.plotHealthyAndFaultyField()
         self.plotDiffField()
